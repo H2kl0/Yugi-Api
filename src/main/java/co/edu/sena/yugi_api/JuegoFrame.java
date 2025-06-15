@@ -1,7 +1,7 @@
 /*
  * JuegoFrame.java
  * Proyecto: Yu-Gi-Oh! Card Battle
- * Autor: [Tu Nombre]
+ * Autor:  H2kl0
  */
 
 package co.edu.sena.yugi_api;
@@ -137,8 +137,7 @@ public class JuegoFrame extends JFrame {
 
     // Carga cartas aleatorias del API
     private void obtenerCartasAleatorias() {
-        String url = "https://db.ygoprodeck.com/api/v7/cardinfo.php?num=3&offset=" + (int) (Math.random() * 1000);
-
+        String url = "https://db.ygoprodeck.com/api/v7/cardinfo.php?num=6&offset=" + (int) (Math.random() * 1000);
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
 
@@ -148,39 +147,55 @@ public class JuegoFrame extends JFrame {
                 JSONObject obj = new JSONObject(response.body());
                 JSONArray data = obj.getJSONArray("data");
 
-                cartasJugador = new JSONObject[3];
-                cartasRival = new JSONObject[3];
-
-                for (int i = 0; i < 3; i++) {
-                    cartasJugador[i] = data.getJSONObject(i % data.length());
-                    cartasRival[i] = data.getJSONObject((i + 1) % data.length());
-
-                    // Cargar imagen del jugador
-                    JSONArray imagesJugador = cartasJugador[i].getJSONArray("card_images");
-                    if (imagesJugador.length() > 0) {
-                        String urlImgJugador = imagesJugador.getJSONObject(0).getString("image_url");
-                        ImageIcon iconJugador = new ImageIcon(new URL(urlImgJugador));
-                        Image imgJugador = iconJugador.getImage().getScaledInstance(130, 180, Image.SCALE_SMOOTH);
-                        lblImagenesJugador[i].setIcon(new ImageIcon(imgJugador));
-                        lblCartasJugador[i].setText(cartasJugador[i].getString("name"));
+                if (data.length() >= 6) {
+                    java.util.Set<Integer> uniqueIndices = new java.util.HashSet<>();
+                    while (uniqueIndices.size() < 6) {
+                        uniqueIndices.add((int) (Math.random() * data.length()));
                     }
 
-                    // Cargar imagen del rival
-                    JSONArray imagesRival = cartasRival[i].getJSONArray("card_images");
-                    if (imagesRival.length() > 0) {
-                        String urlImgRival = imagesRival.getJSONObject(0).getString("image_url");
-                        ImageIcon iconRival = new ImageIcon(new URL(urlImgRival));
-                        Image imgRival = iconRival.getImage().getScaledInstance(130, 150, Image.SCALE_SMOOTH);
-                        lblImagenesRival[i].setIcon(new ImageIcon(imgRival));
+                    cartasJugador = new JSONObject[3];
+                    cartasRival = new JSONObject[3];
+
+                    int idx = 0;
+                    for (int i : uniqueIndices) {
+                        if (idx < 3) {
+                            cartasJugador[idx++] = data.getJSONObject(i);
+                        } else {
+                            cartasRival[idx++ - 3] = data.getJSONObject(i);
+                        }
                     }
-                }
 
-                // Llenar combo de selección de carta
-                comboCartaJugador.removeAllItems();
-                for (int i = 0; i < 3; i++) {
-                    comboCartaJugador.addItem(cartasJugador[i].getString("name"));
-                }
+                    // Cargar imágenes y nombres para el jugador
+                    for (int i = 0; i < 3; i++) {
+                        JSONObject carta = cartasJugador[i];
+                        if (carta.has("card_images") && carta.getJSONArray("card_images").length() > 0) {
+                            String urlImg = carta.getJSONArray("card_images").getJSONObject(0).getString("image_url");
+                            ImageIcon icon = new ImageIcon(new URL(urlImg));
+                            Image img = icon.getImage().getScaledInstance(130, 180, Image.SCALE_SMOOTH);
+                            lblImagenesJugador[i].setIcon(new ImageIcon(img));
+                            lblCartasJugador[i].setText(carta.getString("name"));
+                        }
+                    }
 
+                    // Cargar imágenes y nombres para el rival
+                    for (int i = 0; i < 3; i++) {
+                        JSONObject carta = cartasRival[i];
+                        if (carta.has("card_images") && carta.getJSONArray("card_images").length() > 0) {
+                            String urlImg = carta.getJSONArray("card_images").getJSONObject(0).getString("image_url");
+                            ImageIcon icon = new ImageIcon(new URL(urlImg));
+                            Image img = icon.getImage().getScaledInstance(130, 150, Image.SCALE_SMOOTH);
+                            lblImagenesRival[i].setIcon(new ImageIcon(img));
+                        }
+                    }
+
+                    // Llenar combo de selección de carta
+                    comboCartaJugador.removeAllItems();
+                    for (int i = 0; i < 3; i++) {
+                        comboCartaJugador.addItem(cartasJugador[i].getString("name"));
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "No hay suficientes cartas disponibles.");
+                }
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al cargar cartas.");
