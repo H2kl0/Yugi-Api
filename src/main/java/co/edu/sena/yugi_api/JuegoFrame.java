@@ -1,9 +1,8 @@
 /*
  * JuegoFrame.java
  * Proyecto: Yu-Gi-Oh! Card Battle
- * Autor:  H2kl0
+ * Autor: H2kl0
  */
-
 package co.edu.sena.yugi_api;
 
 import javax.swing.*;
@@ -206,6 +205,10 @@ public class JuegoFrame extends JFrame {
     // Ejecuta una acción: ataque o defensa
     private void ejecutarTurno(boolean atacanteJugador) {
         int index = comboCartaJugador.getSelectedIndex();
+        if (index == -1 || index >= cartasJugador.length || cartasJugador[index] == null) {
+            mostrarMensajeConColor("No tienes más cartas disponibles.", Color.GRAY);
+            return;
+        }
         JSONObject cartaJugador = cartasJugador[index];
 
         int atkJugador = cartaJugador.optInt("atk", 0);
@@ -246,12 +249,17 @@ public class JuegoFrame extends JFrame {
             mostrarMensajeConColor("Ambos decidieron defender.", Color.BLUE);
         }
 
+        // Eliminar la carta del arreglo y del combo
+        cartasJugador[index] = null;
+        comboCartaJugador.removeItemAt(index);
+
         // Actualizar vida
         ((JLabel)getContentPane().getComponent(0)).setText("Tu Vida: " + vidaJugador + " | Vida Rival: " + vidaRival);
 
         turnoActual++;
 
-        if (turnoActual >= 3 || vidaJugador <= 0 || vidaRival <= 0) {
+        // Verificar fin de partida
+        if (turnoActual >= 3 || vidaJugador <= 0 || vidaRival <= 0 || comboCartaJugador.getItemCount() == 0) {
             String resultado;
             if (vidaJugador > vidaRival) {
                 resultado = "🎉 ¡Has ganado!";
@@ -314,6 +322,7 @@ public class JuegoFrame extends JFrame {
         for (JLabel label : lblImagenesJugador) label.setIcon(null);
         for (JLabel label : lblImagenesRival) label.setIcon(null);
 
+        for (JLabel label : lblImagenesRival) label.setIcon(null);
         obtenerCartasAleatorias();
         habilitarBotones();
     }
@@ -335,5 +344,12 @@ public class JuegoFrame extends JFrame {
         JOptionPane.showMessageDialog(this,
             "Historial de partidas:\n" + historial.toString(),
             "Historial", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JuegoFrame juego = new JuegoFrame();
+            juego.setVisible(true);
+        });
     }
 }

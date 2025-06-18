@@ -268,7 +268,7 @@ public class YuGi_API extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonConsultActionPerformed
 
     private void jButtonBattleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBattleActionPerformed
-       new JuegoFrame().setVisible(true);
+       new Yugi_Batlee().setVisible(true);
     }//GEN-LAST:event_jButtonBattleActionPerformed
 
     public void obtenerDatos()
